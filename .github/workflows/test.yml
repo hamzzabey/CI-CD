@@ -1,0 +1,59 @@
+name: CI/CD Pipeline # isim vermek icin kullanilir
+
+on:
+  workflow_dispatch: # manuel olarak kodu calistirmamiza saglar
+  schedule: # kodumuzu hangi zaman aralıklarında calıstırmamızı saglar
+    - cron: "5 8 * * *"
+  push:  # main branche her push yaptıgımızda kod calısır
+    branches:
+      - main
+  pull_request:
+
+  jobs:
+    build: #ilk job
+      runs-on: ubuntu-latest
+      name: Build job
+      steps:
+        -  name: Checkout repository
+           uses: actions/checkout@v3
+
+        - name: Echo user login
+          run: echo "Hello,${{ github.actor}}"
+    test: # ikinci jop
+      runs-on: ubuntu-latest
+      name: Cypress Test Job 
+      container:
+        image: cypress/base:latest # cypress doc
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        - name: Set uo Node.js  #mod.js kuruyoruz
+          uses: actions/setup-node@v3
+          with:
+            node-version: 18
+
+
+        - name: Install dependencies #dependencies kuruyoruz
+          uses: npm install
+
+        - name: Run Cypress tests # testimizi calistiriyoruz
+          uses: npx cypress run    
+
+        - name: UploadCypress videos # otomasyonumuzdaki videoları kaydediyoruz
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: cypress-videos 
+            path: cypress/videos/**/*.mp4
+            retention-days: 1
+
+        - name: UploadCypress screenshots # otomasyonumuzdaki videoları kaydediyoruz
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: cypress-screenshots 
+            path: cypress/screenshots/**/*.mp4
+            retention-days: 1
+
+    

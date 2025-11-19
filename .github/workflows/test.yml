@@ -1,59 +1,58 @@
-name: CI/CD Pipeline # isim vermek icin kullanilir
+name: CI/CD Pipeline
 
 on:
-  workflow_dispatch: # manuel olarak kodu calistirmamiza saglar
-  schedule: # kodumuzu hangi zaman aralıklarında calıstırmamızı saglar
+  workflow_dispatch:
+  schedule:
     - cron: "5 8 * * *"
-  push:  # main branche her push yaptıgımızda kod calısır
+  push:
     branches:
       - main
   pull_request:
 
-  jobs:
-    build: #ilk job
-      runs-on: ubuntu-latest
-      name: Build job
-      steps:
-        -  name: Checkout repository
-           uses: actions/checkout@v3
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-        - name: Echo user login
-          run: echo "Hello,${{ github.actor}}"
-    test: # ikinci jop
-      runs-on: ubuntu-latest
-      name: Cypress Test Job 
-      container:
-        image: cypress/base:latest # cypress doc
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v3
+      - name: Echo user login
+        run: echo "Hello, ${{ github.actor }}"
 
-        - name: Set uo Node.js  #mod.js kuruyoruz
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18
+  test:
+    runs-on: ubuntu-latest
+    name: Cypress Test Job
+    container:
+      image: cypress/base:latest
 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-        - name: Install dependencies #dependencies kuruyoruz
-          uses: npm install
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-        - name: Run Cypress tests # testimizi calistiriyoruz
-          uses: npx cypress run    
+      - name: Install dependencies
+        run: npm install
 
-        - name: UploadCypress videos # otomasyonumuzdaki videoları kaydediyoruz
-          if: always()
-          uses: actions/upload-artifact@v4
-          with:
-            name: cypress-videos 
-            path: cypress/videos/**/*.mp4
-            retention-days: 1
+      - name: Run Cypress tests
+        run: npx cypress run
 
-        - name: UploadCypress screenshots # otomasyonumuzdaki videoları kaydediyoruz
-          if: always()
-          uses: actions/upload-artifact@v4
-          with:
-            name: cypress-screenshots 
-            path: cypress/screenshots/**/*.mp4
-            retention-days: 1
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos/**/*.mp4
+          retention-days: 1
 
-    
+      - name: Upload Cypress screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots/**/*.png
+          retention-days: 1
